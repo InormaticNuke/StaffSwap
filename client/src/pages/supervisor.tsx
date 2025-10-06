@@ -29,7 +29,11 @@ export default function Supervisor() {
       <AppHeader title="Create Replacement" onLogout={handleLogout} />
       <main className="mx-auto max-w-md p-4 space-y-4">
         <Link href="/history">
-          <Button variant="outline" className="w-full h-12" data-testid="button-view-history">
+          <Button
+            variant="outline"
+            className="w-full h-12"
+            data-testid="button-view-history"
+          >
             <History className="h-5 w-5 mr-2" />
             View History
           </Button>
