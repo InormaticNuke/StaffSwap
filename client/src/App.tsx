@@ -8,6 +8,7 @@ import Login from "@/pages/login";
 import Supervisor from "@/pages/supervisor";
 import HR from "@/pages/hr";
 import History from "@/pages/history";
+import ExtraHours from "@/pages/extra-hours";
 
 function ProtectedRoute({ component: Component, ...rest }: any) {
   const userRole = localStorage.getItem("userRole");
@@ -26,6 +27,9 @@ function Router() {
       </Route>
       <Route path="/history">
         {(params) => <ProtectedRoute component={History} {...params} />}
+      </Route>
+      <Route path="/extra-hours">
+        {(params) => <ProtectedRoute component={ExtraHours} {...params} />}
       </Route>
       <Route component={NotFound} />
     </Switch>
