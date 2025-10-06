@@ -4,10 +4,12 @@ import { ExtraHoursForm } from "@/components/ExtraHoursForm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useData } from "@/context/DataContext";
 
 export default function ExtraHours() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { addExtraHours } = useData();
 
   const handleLogout = () => {
     localStorage.removeItem("userRole");
@@ -15,8 +17,7 @@ export default function ExtraHours() {
   };
 
   const handleSubmit = (data: any) => {
-    //todo: remove mock functionality
-    console.log("Extra hours logged:", data);
+    addExtraHours(data);
     toast({
       title: "Extra hours submitted",
       description: "HR has been notified for approval",

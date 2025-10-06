@@ -13,85 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-//todo: remove mock functionality
-const mockReplacements = [
-  {
-    id: "1",
-    absentWorker: "John Doe",
-    replacementWorker: "Alex Brown",
-    extraAmount: 150.00,
-    workSite: "Warehouse A",
-    status: "approved" as const,
-    date: "Oct 3, 2025",
-  },
-  {
-    id: "2",
-    absentWorker: "Jane Smith",
-    replacementWorker: "Emily Davis",
-    extraAmount: 200.50,
-    workSite: "Office Downtown",
-    status: "pending" as const,
-    date: "Oct 2, 2025",
-  },
-  {
-    id: "3",
-    absentWorker: "Mike Johnson",
-    replacementWorker: "Chris Wilson",
-    extraAmount: 175.00,
-    workSite: "Factory North",
-    status: "rejected" as const,
-    date: "Oct 1, 2025",
-  },
-  {
-    id: "4",
-    absentWorker: "Sarah Williams",
-    replacementWorker: "Lisa Moore",
-    extraAmount: 125.00,
-    workSite: "Warehouse B",
-    status: "approved" as const,
-    date: "Sep 30, 2025",
-  },
-];
-
-//todo: remove mock functionality
-const mockExtraHours = [
-  {
-    id: "eh1",
-    worker: "Mike Johnson",
-    workSite: "Factory North",
-    hours: 4.5,
-    date: "Oct 3, 2025",
-    status: "approved" as const,
-  },
-  {
-    id: "eh2",
-    worker: "Sarah Williams",
-    workSite: "Warehouse B",
-    hours: 3.0,
-    date: "Oct 2, 2025",
-    status: "pending" as const,
-  },
-  {
-    id: "eh3",
-    worker: "John Doe",
-    workSite: "Warehouse A",
-    hours: 2.5,
-    date: "Oct 1, 2025",
-    status: "rejected" as const,
-  },
-];
+import { useData } from "@/context/DataContext";
 
 export default function History() {
   const [, setLocation] = useLocation();
   const [hoursFilter, setHoursFilter] = useState<string>("all");
+  const { replacements, extraHours } = useData();
 
   const handleLogout = () => {
     localStorage.removeItem("userRole");
     setLocation("/");
   };
 
-  const filteredExtraHours = mockExtraHours.filter((h) => {
+  const filteredExtraHours = extraHours.filter((h) => {
     if (hoursFilter === "all") return true;
     return h.status === hoursFilter;
   });
@@ -120,7 +54,7 @@ export default function History() {
           </TabsList>
           
           <TabsContent value="replacements" className="mt-4">
-            <ReplacementHistory replacements={mockReplacements} />
+            <ReplacementHistory replacements={replacements} />
           </TabsContent>
           
           <TabsContent value="hours" className="mt-4">

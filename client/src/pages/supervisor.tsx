@@ -1,14 +1,15 @@
-import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import { AppHeader } from "@/components/AppHeader";
 import { ReplacementForm } from "@/components/ReplacementForm";
 import { Button } from "@/components/ui/button";
 import { History, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useData } from "@/context/DataContext";
 
 export default function Supervisor() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { addReplacement } = useData();
 
   const handleLogout = () => {
     localStorage.removeItem("userRole");
@@ -16,8 +17,7 @@ export default function Supervisor() {
   };
 
   const handleSubmit = (data: any) => {
-    //todo: remove mock functionality
-    console.log("Replacement created:", data);
+    addReplacement(data);
     toast({
       title: "Replacement submitted",
       description: "HR has been notified for approval",
