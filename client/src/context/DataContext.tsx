@@ -2,12 +2,23 @@ import { createContext, useContext, useState, ReactNode } from "react";
 
 export interface Replacement {
   id: string;
-  absentWorker: string;
-  replacementWorker: string;
+  shiftType: "reemplazo" | "apoyo" | "induccion";
+  absentWorker?: string;
+  reason?: string;
+  replacementWorker?: string;
+  worker?: string;
   extraAmount: number;
   workSite: string;
   status: "pending" | "approved" | "rejected";
   date: string;
+
+  // Datos adicionales
+  unregisteredName?: string;
+  unregisteredRut?: string;
+  unregisteredPhone?: string;
+  idImageUrl?: string | null;
+  photoImageUrl?: string | null;
+  comments?: string;
 }
 
 export interface ExtraHours {
@@ -22,7 +33,7 @@ export interface ExtraHours {
 interface DataContextType {
   replacements: Replacement[];
   extraHours: ExtraHours[];
-  addReplacement: (replacement: Omit<Replacement, "id" | "status" | "date">) => void;
+  addReplacement: (replacement: any) => void;
   updateReplacementStatus: (id: string, status: "approved" | "rejected") => void;
   addExtraHours: (hours: Omit<ExtraHours, "id" | "status"> & { date: string }) => void;
   updateExtraHoursStatus: (id: string, status: "approved" | "rejected") => void;
@@ -30,57 +41,36 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-const initialReplacements: Replacement[] = [
-  {
-    id: "1",
-    absentWorker: "John Doe",
-    replacementWorker: "Alex Brown",
-    extraAmount: 150.00,
-    workSite: "Warehouse A",
-    status: "pending",
-    date: "Oct 3, 2025",
-  },
-  {
-    id: "2",
-    absentWorker: "Jane Smith",
-    replacementWorker: "Emily Davis",
-    extraAmount: 200.50,
-    workSite: "Office Downtown",
-    status: "pending",
-    date: "Oct 2, 2025",
-  },
-];
-
-const initialExtraHours: ExtraHours[] = [
-  {
-    id: "eh1",
-    worker: "Mike Johnson",
-    workSite: "Factory North",
-    hours: 4.5,
-    date: "Oct 3, 2025",
-    status: "pending",
-  },
-  {
-    id: "eh2",
-    worker: "Sarah Williams",
-    workSite: "Warehouse B",
-    hours: 3.0,
-    date: "Oct 2, 2025",
-    status: "pending",
-  },
-];
-
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [replacements, setReplacements] = useState<Replacement[]>(initialReplacements);
-  const [extraHours, setExtraHours] = useState<ExtraHours[]>(initialExtraHours);
+  // 🔹 Sin datos iniciales de prueba
+  const [replacements, setReplacements] = useState<Replacement[]>([]);
+  const [extraHours, setExtraHours] = useState<ExtraHours[]>([]);
 
-  const addReplacement = (replacement: Omit<Replacement, "id" | "status" | "date">) => {
+  const addReplacement = (replacement: any) => {
+    // 🔹 Si el formulario envía archivos, generamos URL locales
+    let idImageUrl: string | null = null;
+    let photoImageUrl: string | null = null;
+
+    if (replacement.idImage instanceof File) {
+      idImageUrl = URL.createObjectURL(replacement.idImage);
+    }
+    if (replacement.photoImage instanceof File) {
+      photoImageUrl = URL.createObjectURL(replacement.photoImage);
+    }
+
     const newReplacement: Replacement = {
       ...replacement,
       id: `r${Date.now()}`,
       status: "pending",
-      date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      date: new Date().toLocaleDateString("es-CL", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      idImageUrl,
+      photoImageUrl,
     };
+
     setReplacements((prev) => [newReplacement, ...prev]);
   };
 
@@ -91,10 +81,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const addExtraHours = (hours: Omit<ExtraHours, "id" | "status"> & { date: string }) => {
-    const [year, month, day] = hours.date.split('-').map(Number);
+    const [year, month, day] = hours.date.split("-").map(Number);
     const workDate = new Date(year, month - 1, day);
-    const formattedDate = workDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    
+    const formattedDate = workDate.toLocaleDateString("es-CL", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+
     const newExtraHours: ExtraHours = {
       ...hours,
       id: `eh${Date.now()}`,

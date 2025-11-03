@@ -28,7 +28,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             <Briefcase className="h-8 w-8 text-primary-foreground" />
           </div>
           <div className="space-y-2">
-            <CardTitle className="text-2xl">Labor Replacements</CardTitle>
+            <CardTitle className="text-2xl">Turnos Extra</CardTitle>
             <CardDescription>Sign in to manage replacements</CardDescription>
           </div>
         </CardHeader>
