@@ -1,93 +1,46 @@
-// server/index.ts
-import express, { type Request, Response, NextFunction } from "express";
-import fs from "fs";
+import express from "express";
+import session from "express-session";
+import pgSession from "connect-pg-simple";
+import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createServer as createHttpServer, type Server } from "http";
-import { registerRoutes } from "./routes";
-import { setupVite } from "./vite"; // mantiene tu setupVite para dev
-import { log } from "./vite";
+import pool from "./db.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+dotenv.config();
 
 const app = express();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// middlewares para parsear body
+const PgSession = pgSession(session);
+
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(
+  session({
+    store: new PgSession({
+      pool,
+      tableName: "session",
+    }),
+    secret: process.env.SESSION_SECRET || "default_secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false },
+  })
+);
 
-// middleware simple de logging que tenías antes (lo mantengo)
-app.use((req, res, next) => {
-  const start = Date.now();
-  const pathReq = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  // override res.json para capturar body
-  // @ts-ignore
-  res.json = function (bodyJson: any, ...args: any[]) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (pathReq.startsWith("/api")) {
-      let logLine = `${req.method} ${pathReq} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-      if (logLine.length > 200) logLine = logLine.slice(0, 199) + "…";
-      log(logLine);
-    }
-  });
-
-  next();
+// --- Ejemplo de ruta API ---
+app.get("/api/ping", (req, res) => {
+  res.json({ message: "pong!" });
 });
 
-async function main() {
-  const httpServer: Server = createHttpServer(app);
+// --- Servir el frontend (vite build) ---
+app.use(express.static(path.join(__dirname, "../client/dist")));
 
-  // registra tus rutas API (implementa registerRoutes para añadir /api/*)
-  await registerRoutes(app);
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+});
 
-  // error handler (igual que tenías)
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-    res.status(status).json({ message });
-    // no re-throw en producción, pero en dev puede ayudar
-    // throw err;
-  });
+const PORT = process.env.PORT || 5000;
 
-  // Si estamos en desarrollo montamos vite (middleware)
-  if (app.get("env") === "development") {
-    // setupVite usa createViteServer y middleware en dev
-    await setupVite(app, httpServer);
-  } else {
-    // PRODUCCIÓN: servir archivos estáticos compilados por Vite (client/dist)
-    const distPath = path.resolve(__dirname, "..", "client", "dist");
-    if (!fs.existsSync(distPath)) {
-      // Mensaje claro para debug
-      console.error(`❌ Dist folder no encontrado en: ${distPath}`);
-      console.error("Ejecuta `npm run build` dentro de /client antes de desplegar.");
-    } else {
-      app.use(express.static(distPath)); // sirve CSS, JS, assets
-      // redirige todo al index.html (SPA)
-      app.get("*", (_req, res) => {
-        res.sendFile(path.join(distPath, "index.html"));
-      });
-    }
-  }
-
-  const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen({ port, host: "0.0.0.0" }, () => {
-    log(`✅ Servidor corriendo en puerto ${port}`);
-  });
-}
-
-main().catch((err) => {
-  console.error("Error arrancando servidor:", err);
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log(`✅ Servidor corriendo en puerto ${PORT}`);
 });
