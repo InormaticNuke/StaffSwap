@@ -4,18 +4,18 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+  // 📁 Indica que tu proyecto React está dentro de /client
   root: path.resolve(__dirname, "client"),
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "client", "src"),
-    },
-  },
+
   build: {
-    // 📦 Output directo a donde Express espera los archivos
-    outDir: path.resolve(__dirname, "client", "dist"),
+    // 📦 Donde Vite generará los archivos finales
+    outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
   },
-  server: {
-    port: 5173,
+
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "client/src"),
+    },
   },
 });
