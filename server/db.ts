@@ -1,22 +1,26 @@
-import pkg from "pg";
+import { Pool } from "pg";
 import dotenv from "dotenv";
 
 dotenv.config();
-const { Pool } = pkg;
 
 const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
   user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST,
   database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: Number(process.env.DB_PORT),
   ssl: {
-    rejectUnauthorized: false, // importante para DigitalOcean
+    rejectUnauthorized: false,
   },
 });
 
-pool.connect()
-  .then(() => console.log("✅ Conectado a PostgreSQL en DigitalOcean"))
-  .catch((err) => console.error("❌ Error al conectar con PostgreSQL:", err));
-
-export default pool;
+(async () => {
+  try {
+    const result = await pool.query("SELECT NOW()");
+    console.log("✅ Conexión exitosa:", result.rows[0]);
+  } catch (err) {
+    console.error("❌ Error de conexión:", err);
+  } finally {
+    pool.end();
+  }
+})();

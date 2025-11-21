@@ -1,38 +1,38 @@
-import multer, { FileFilterCallback } from "multer";
-import path from "path";
-import { Request } from "express";
+import { type User, type InsertUser } from "@shared/schema";
+import { randomUUID } from "crypto";
 
-// 🔹 Extendemos el tipo Request para incluir req.file
-export interface MulterRequest extends Request {
-  file?: Express.Multer.File;
+// modify the interface with any CRUD methods
+// you might need
+
+export interface IStorage {
+  getUser(id: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
 }
 
-// 🔹 Configuración del almacenamiento
-const storage = multer.diskStorage({
-  destination: (_req: Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
-    cb(null, path.join(process.cwd(), "uploads"));
-  },
-  filename: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + "-" + file.originalname);
-  },
-});
+export class MemStorage implements IStorage {
+  private users: Map<string, User>;
 
-// 🔹 Filtro opcional de archivos (ejemplo: solo imágenes y PDFs)
-const fileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-  const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Tipo de archivo no permitido"));
+  constructor() {
+    this.users = new Map();
   }
-};
 
-// 🔹 Inicializamos multer con las configuraciones
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // límite: 5 MB
-});
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
 
-export default upload;
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username,
+    );
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = randomUUID();
+    const user: User = { ...insertUser, id };
+    this.users.set(id, user);
+    return user;
+  }
+}
+
+export const storage = new MemStorage();
